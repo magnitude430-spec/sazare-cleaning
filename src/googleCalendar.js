@@ -13,13 +13,17 @@ export function loginWithGoogle() {
 }
 
 export function handleOAuthCallback() {
+  // Implicit flow: tokenはURLハッシュ（#）で返ってくる
   const hash = window.location.hash.substring(1);
-  if (!hash) return null;
-  const params = new URLSearchParams(hash);
-  const token = params.get("access_token");
-  if (!token) return null;
-  window.history.replaceState({}, "", window.location.pathname);
-  return token;
+  if (hash) {
+    const params = new URLSearchParams(hash);
+    const token = params.get("access_token");
+    if (token) {
+      window.history.replaceState({}, "", window.location.pathname);
+      return { type: "token", value: token };
+    }
+  }
+  return null;
 }
 
 export async function fetchCalendarEvents(accessToken) {
