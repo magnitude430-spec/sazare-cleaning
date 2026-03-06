@@ -73,30 +73,28 @@ export default function App() {
   useEffect(() => saveLocal("completions", completions), [completions]);
   useEffect(() => saveLocal("reservations", reservations), [reservations]);
 
-  // OAuthコールバック処理
+  // OAuthコールバック処理（Implicit flow）
   useEffect(() => {
-    if (window.location.search.includes("code=")) {
+    if (window.location.hash.includes("access_token=")) {
       setIsLoading(true);
-      handleOAuthCallback()
-        .then(token => {
-          if (token) {
-            setAccessToken(token);
-            saveLocal("gcal_token", token);
-            setIsDemo(false);
-            return fetchCalendarEvents(token);
-          }
-        })
-        .then(events => {
-          if (events) {
+      const token = handleOAuthCallback();
+      if (token) {
+        setAccessToken(token);
+        saveLocal("gcal_token", token);
+        setIsDemo(false);
+        fetchCalendarEvents(token)
+          .then(events => {
             setReservations(events);
             showNotification("Googleカレンダーと連携しました ✓");
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          showNotification("連携に失敗しました。再度お試しください。");
-        })
-        .finally(() => setIsLoading(false));
+          })
+          .catch(err => {
+            console.error(err);
+            showNotification("カレンダーの読み込みに失敗しました。");
+          })
+          .finally(() => setIsLoading(false));
+      } else {
+        setIsLoading(false);
+      }
     }
   }, []);
 
